@@ -27,11 +27,51 @@ const xAxisGroup = graph
 
 const yAxisGroup = graph.append("g").attr("class", "y-axis");
 
+// d3 line path generator
+const line = d3
+  .line()
+  .x(function(d) {
+    return x(new Date(d.date));
+  })
+  .y(function(d) {
+    return y(d.distance);
+  });
+
+// create line path element
+const path = graph.append("path");
+
+// tooltip
+const tip = d3
+  .tip()
+  .attr("class", "tip card")
+  .html(d => {
+    let date = new Date(d.date).toISOString().split("T")[0];
+    let content = `<div class="date">${date}</div>`;
+    content += `<div class="distance">${d.distance}m</div>`;
+    return content;
+  });
+
+graph.call(tip);
+
 const update = data => {
+  // filter data based on activity. We want objects that are equal to selected activity
+  data = data.filter(item => item.activity === activity);
+
+  // sort data based on date objects
+  data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
   // set scale domains
   // look at all of the data and compare all of the dates
   x.domain(d3.extent(data, d => new Date(d.date)));
   y.domain([0, d3.max(data, d => d.distance)]);
+
+  // update path data - we must pass entire data array when passing data to a path element
+  path
+    .data([data])
+    .attr("fill", "none")
+    .attr("stroke", "#00bfa5")
+    .attr("stroke-width", 2)
+    .attr("d", line);
 
   // join data to circle elements and create circle for objects
   const circles = graph.selectAll("circle").data(data);
@@ -50,6 +90,18 @@ const update = data => {
     .attr("cx", d => x(new Date(d.date)))
     .attr("cy", d => y(d.distance))
     .attr("fill", "#ccc");
+
+  // create listener events
+  graph
+    .selectAll("circle")
+    .on("mouseover", (d, i, n) => {
+      tip.show(d, n[i]);
+      handleMouseOver(d, i, n);
+    })
+    .on("mouseleave", (d, i, n) => {
+      tip.hide();
+      handleMouseLeave(d, i, n);
+    });
 
   // create axes
   // pass in scale to the axes
@@ -100,3 +152,19 @@ db.collection("activities").onSnapshot(res => {
   });
   update(data);
 });
+
+const handleMouseOver = (d, i, n) => {
+  d3.select(n[i])
+    .transition()
+    .duration(100)
+    .attr("r", 10)
+    .attr("fill", "#fff");
+};
+
+const handleMouseLeave = (d, i, n) => {
+  d3.select(n[i])
+    .transition()
+    .duration(100)
+    .attr("r", 5)
+    .attr("fill", "#ccc");
+};
