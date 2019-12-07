@@ -1,5 +1,6 @@
-.nav {
+nav {
   background: #333;
+  padding: 0 2rem;
 }
 
 button {
@@ -14,12 +15,21 @@ button {
   cursor: pointer;
 }
 
-button.active {
-  background: #00bfa5;
+button.active,
+button:active,
+button:focus,
+button:visited {
+  background: #ffb74d;
 }
 
 form span {
-  color: #00bfa5;
+  color: #ffb74d;
+}
+
+input[type="text"]:not(.browser-default):focus:not([readonly]) {
+  border-bottom: 1px solid #ffb74d;
+  -webkit-box-shadow: 0 1px 0 0 #ffb74d;
+  box-shadow: 0 1px 0 0 #ffb74d;
 }
 
 .x-axis path,
@@ -33,4 +43,5 @@ form span {
   padding: 1rem;
   background: #333;
   color: #fff;
+  text-align: center;
 }
